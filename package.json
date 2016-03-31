@@ -1,0 +1,15 @@
+{
+  "name": "maxcube-cli",
+  "version": "0.1.0",
+  "description": "eQ-3 Max! Cube command line interface",
+  "main": "maxcube-cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ives De Bruycker",
+  "license": "ISC",
+  "dependencies": {
+    "maxcube": "^1.0.0",
+    "vorpal": "^1.10.10"
+  }
+}
