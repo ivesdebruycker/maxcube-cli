@@ -12,11 +12,11 @@ if (!ip) {
 var maxCube = new MaxCube(ip, port);
 
 maxCube.on('closed', function () {
-    vorpal.log('Connection closed');
+  vorpal.log('Connection closed');
 });
 
 maxCube.on('connected', function () {
-    vorpal.log('Connected');
+  vorpal.log('Connected');
 });
 
 vorpal
@@ -72,6 +72,30 @@ vorpal
       self.log('Temperature set');
       } else {
         self.log('Error setting temperature');
+      }
+      callback();
+   });
+  });
+
+vorpal
+  .command('mode <rf_address> <mode> [until]', 'Sets mode (AUTO, MANUAL, BOOST or VACATION) of specified device. Mode VACATION needs until date/time (ISO 8601, e.g. 2019-06-20T10:00:00Z)')
+  .autocomplete({ data: function () {
+      return Object.keys(maxCube.getDevices()).concat(['AUTO', 'MANUAL', 'BOOST', 'VACATION']);
+  } })
+  .validate(function (args) {
+    if (args.mode === 'VACATION' && !args.until) {
+      return 'Error: until date needed for mode VACATION';
+    } else {
+      return true;
+    }
+  })
+  .action(function (args, callback) {
+    var self = this;
+    maxCube.setTemperature(args.rf_address, null, args.mode, args.date_until).then(function (success) {
+      if (success) {
+      self.log('Mode set');
+      } else {
+        self.log('Error setting mode');
       }
       callback();
    });
