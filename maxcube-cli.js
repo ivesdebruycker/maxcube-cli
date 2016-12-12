@@ -1,5 +1,6 @@
 var MaxCube = require('maxcube');
 var vorpal = require('vorpal')();
+var Table = require('cli-table2');
 
 var ip = process.argv[2];
 var port = process.argv[3] || 62910;
@@ -23,20 +24,71 @@ vorpal
   .command('status [rf_address]', 'Get status of all or specified devices')
   .alias('s')
   .option('-v, --verbose', 'Verbose output')
+  .option('-p, --plain', 'Plain output, no table')
   .action(function(args, callback) {
     var self = this;
     maxCube.getDeviceStatus(args.rf_address).then(function (devices) {
       if (args.options.verbose) {
-        self.log(devices);
+        if (args.options.plain) {
+          self.log(devices);
+        } else {
+          var table = new Table({
+            head: ['RF address', 'name', 'room', 'mode', 'setpoint', 'valve', 'temp', 'battery_low', 'initialized', 'fromCmd', 'error', 'valid', 'dst_active', 'gateway_known', 'panel_locked', 'link_error'],
+            colWidths: [10, 20]
+          });
+          devices.forEach(function (device) {
+            var deviceInfo = maxCube.getDeviceInfo(device.rf_address);
+            table.push([
+              device.rf_address,
+              deviceInfo.device_name,
+              deviceInfo.room_name,
+              device.mode,
+              device.setpoint,
+              device.valve,
+              device.temp,
+              device.battery_low,
+              device.initialized,
+              device.fromCmd,
+              device.error,
+              device.valid,
+              device.dst_active,
+              device.gateway_known,
+              device.panel_locked,
+              device.link_error
+              ]);
+          });
+          self.log(table.toString());
+        }
       } else {
-        devices.forEach(function (device) {
-          var deviceInfo = maxCube.getDeviceInfo(device.rf_address);
-          self.log(device.rf_address + ' (' + deviceInfo.device_name + ', ' + deviceInfo.room_name + ') - temp: ' + device.temp + ', ' + 
-            'setpoint: ' + device.setpoint + ', ' +
-            'valve: ' + device.valve + ', ' +
-            'mode: ' + device.mode
-          );
-        });
+        if (args.options.plain) {
+          devices.forEach(function (device) {
+            var deviceInfo = maxCube.getDeviceInfo(device.rf_address);
+            self.log(device.rf_address + ' (' + deviceInfo.device_name + ', ' + deviceInfo.room_name + ')');
+            self.log('    temp: ' + device.temp + ', ' +
+              'setpoint: ' + device.setpoint + ', ' +
+              'valve: ' + device.valve + ', ' +
+              'mode: ' + device.mode
+              );
+          });
+        } else {
+          var table = new Table({
+            head: ['RF address', 'name', 'room', 'mode', 'setpoint', 'valve', 'temp'],
+            colWidths: [10, 20]
+          });
+          devices.forEach(function (device) {
+            var deviceInfo = maxCube.getDeviceInfo(device.rf_address);
+            table.push([
+              device.rf_address,
+              deviceInfo.device_name,
+              deviceInfo.room_name,
+              device.mode,
+              device.setpoint,
+              device.valve,
+              device.temp
+              ]);
+          });
+          self.log(table.toString());
+        }
       }
       self.log(maxCube.getCommStatus());
       callback();
